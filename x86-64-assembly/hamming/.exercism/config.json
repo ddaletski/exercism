@@ -1,0 +1,19 @@
+{
+  "authors": [
+    "bergjohan"
+  ],
+  "files": {
+    "solution": [
+      "hamming.asm"
+    ],
+    "test": [
+      "hamming_test.c"
+    ],
+    "example": [
+      ".meta/example.asm"
+    ]
+  },
+  "blurb": "Calculate the Hamming difference between two DNA strands.",
+  "source": "The Calculating Point Mutations problem at Rosalind",
+  "source_url": "http://rosalind.info/problems/hamm/"
+}
