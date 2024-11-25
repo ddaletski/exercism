@@ -8,31 +8,31 @@ distance:
     xor eax, eax
 
 .loop_start:
-    mov r8b, [rdi]
-    test r8b, r8b
-    jz .loop_end
-    mov r9b, [rsi]
-    test r9b, r9b
-    jz .loop_end
+    xor edx, edx
+    mov ch, [rdi]
+    mov cl, [rsi]
 
-    xor rdx, rdx ; will contain 0 if chars equal or 1 otherwise
-    cmp r8b, r9b
-    setne dl
+    mov dl, ch
+    xor dl, cl
+    setnz dl ; chars are different -> increment counter
     add eax, edx
+
+    test ch, cl
+    jz .loop_end ; at least one char is '\0'
 
     inc rdi
     inc rsi
     jmp .loop_start
 
 .loop_end:
-    mov ecx, -1 ; return value in case of different lengths (when either last char isn't \0)
+    or ch, cl
+    jz .end ; both chars are '\0'
 
-    mov r8b, [rdi]
-    mov r9b, [rsi]
-    or r8b, r9b
-    test r8b, r8b
-    cmovne eax, ecx;
+.len_mismatch:
+    xor eax, eax
+    dec eax
 
+.end:
     ret
 
 %ifidn __OUTPUT_FORMAT__,elf64
