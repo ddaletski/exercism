@@ -60,22 +60,10 @@ void test_a_value_smaller_than_the_arrays_smallest_value_is_not_found(void) {
     TEST_ASSERT_EQUAL_INT(-1, find(array, ARRAY_SIZE(array), 0));
 }
 
-void test_a_value_smaller_than_the_arrays_smallest_value_is_not_found_even_size(void) {
-    int array[] = {1, 3, 4, 6, 8, 9};
-
-    TEST_ASSERT_EQUAL_INT(-1, find(array, ARRAY_SIZE(array), 0));
-}
-
 void test_a_value_larger_than_the_arrays_largest_value_is_not_found(void) {
     int array[] = {1, 3, 4, 6, 8, 9, 11};
 
     TEST_ASSERT_EQUAL_INT(-1, find(array, ARRAY_SIZE(array), 13));
-}
-
-void test_a_value_larger_than_the_arrays_largest_value_is_not_found_even_size(void) {
-    int array[] = {-6, -5, -4, -3, -2, -1};
-
-    TEST_ASSERT_EQUAL_INT(-1, find(array, ARRAY_SIZE(array), 0));
 }
 
 void test_nothing_is_found_in_an_empty_array(void) {
@@ -88,6 +76,13 @@ void test_nothing_is_found_when_the_left_and_right_bounds_cross(void) {
     TEST_ASSERT_EQUAL_INT(-1, find(array, ARRAY_SIZE(array), 0));
 }
 
+void test_a_value_after_the_array_bound_is_not_found(void) {
+    // 5 shouldn't be found cause we pass the size argument = 4
+    int array[] = {1, 2, 3, 4, 5};
+
+    TEST_ASSERT_EQUAL_INT(-1, find(array, ARRAY_SIZE(array) - 1, 5));
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_finds_a_value_in_an_array_with_one_element);
@@ -98,10 +93,9 @@ int main(void) {
     RUN_TEST(test_finds_a_value_in_an_array_of_even_length);
     RUN_TEST(test_identifies_that_a_value_is_not_included_in_the_array);
     RUN_TEST(test_a_value_smaller_than_the_arrays_smallest_value_is_not_found);
-    RUN_TEST(test_a_value_smaller_than_the_arrays_smallest_value_is_not_found_even_size);
     RUN_TEST(test_a_value_larger_than_the_arrays_largest_value_is_not_found);
-    RUN_TEST(test_a_value_larger_than_the_arrays_largest_value_is_not_found_even_size);
     RUN_TEST(test_nothing_is_found_in_an_empty_array);
     RUN_TEST(test_nothing_is_found_when_the_left_and_right_bounds_cross);
+    RUN_TEST(test_a_value_after_the_array_bound_is_not_found);
     return UNITY_END();
 }

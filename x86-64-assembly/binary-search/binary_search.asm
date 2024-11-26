@@ -5,17 +5,15 @@ global find
 ; size in esi
 ; query in edx
 find:
-    xor rax, rax
     mov rcx, rdi ; save original pointer
-
-    xor r8d, r8d
+    xor eax, eax
 
 .loop:
     test esi, esi
     jz .not_found
 
     test sil, 1
-    setz r8b ; size evenness bit
+    setz al ; size evenness bit (read the description in the end)
 
     shr esi, 1 ; size /= 2
     cmp edx, [rdi + 4 * rsi]
@@ -31,7 +29,9 @@ find:
 
 .right:
     lea rdi, [rdi + 4 * rsi + 4]; ptr = mid + 1
-    sub esi, r8d ; decrement size if previous size was even
+    ;; decrement size if size was even before dividing by 2
+    ;; cause in that case we have one item less on the right of the pivot than on the left
+    sub esi, eax
     jmp .loop
 
 .not_found:
