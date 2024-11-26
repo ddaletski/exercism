@@ -5,34 +5,34 @@ global distance
 ; b in rsi
 ; result in rax
 distance:
-    xor eax, eax
+    xor ecx, ecx
+    xor edx, edx ; mismatch counter
+    cld
 
 .loop_start:
-    xor edx, edx
-    mov ch, [rdi]
-    mov cl, [rsi]
+    mov ah, [rdi]
+    lodsb ; al <- [rsi]; rsi++
+    scasb ; cmp al, [rdi]; rdi++
+    setne cl
+    add edx, ecx
 
-    mov dl, ch
-    xor dl, cl
-    setnz dl ; chars are different -> increment counter
-    add eax, edx
+    imul ah
+    test ax, ax
+    jz .loop_end ; producs is 0 => at least one char is 0
 
-    test ch, cl
-    jz .loop_end ; at least one char is '\0'
-
-    inc rdi
-    inc rsi
     jmp .loop_start
 
 .loop_end:
-    or ch, cl
-    jz .end ; both chars are '\0'
+    ; at least one char was 0
+    test cl, cl ; check if chars were different (meaning cl byte set)
+    jz .end ; both are 0
 
 .len_mismatch:
-    xor eax, eax
-    dec eax
+    xor edx, edx
+    dec edx
 
 .end:
+    mov eax, edx
     ret
 
 %ifidn __OUTPUT_FORMAT__,elf64
