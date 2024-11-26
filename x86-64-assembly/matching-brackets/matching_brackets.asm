@@ -1,10 +1,32 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; fast version using lookup table
+;; A bit slower version using dynamic lookup table
+;;
+;; .text is 40% larger this way, but the 256-byte lookup table is now in .bss instead of .data,
+;; saving way more in return.
+;;
+;; The downside is that lookup table (well, only 6 of its entries) is now initialized at runtime on every `is_paired` call,
+;; which is probably negligible (it's just `O(1)`) for long enough test cases
+;;
+;; This solution also assumes .bss section is initialized with zeros at load time, which is required by ELF spec AFAIK
+;;
+;; Also, in multithreaded context, multiple threads share the lookup table and can write to it concurrently. But it shouldn't break
+;; anything as they'll write the same bytes anyway
 
 section .text
 global is_paired
 
 is_paired:
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; lookup initialization
+    lea rcx, [rel lookup]
+    mov byte [rcx + left_paren], 1
+    mov byte [rcx + left_sq], 1
+    mov byte [rcx + left_brace], 1
+    mov byte [rcx + right_paren], left_paren
+    mov byte [rcx + right_sq], left_sq
+    mov byte [rcx + right_brace], left_brace
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     xor rdx, rdx
     xor rax, rax
     inc al ; brackets match until proven otherwise
@@ -35,11 +57,11 @@ is_paired:
     je .mismatch ; stack is empty, can't pop
 
     pop dx ; stack top is in `dl`
-    ; expected left bracket is in `cl`
+    ;; expected left bracket is in `cl`
     cmp dl, cl
     je .loop
 
-    ; won't jump if wrong opening bracked is on the stack
+    ;; won't jump if wrong opening bracked is on the stack
 
 .mismatch:
     xor al, al
@@ -53,7 +75,7 @@ is_paired:
 .end:
     ret
 
-section .data
+section .bss
     left_paren: equ '('
     right_paren: equ ')'
     left_sq: equ '['
@@ -61,38 +83,20 @@ section .data
     left_brace: equ '{'
     right_brace: equ '}'
 
-; lookup table for brackets
-; closing brackets lead to their opening counterparts
-; opening brackets lead to 1
-; other chars lead to 0
-
-;   - lt[']'] = '['
-;   - lt[')'] = '('
-;   - lt['}'] = '{'
-;   - lt['['] = 1
-;   - lt['('] = 1
-;   - lt['{'] = 1
-;   - lt[other] = 0
+;; lookup table for brackets
+;; closing brackets lead to their opening counterparts
+;; opening brackets lead to 1
+;; other chars lead to 0
+;;
+;;   - lt[']'] = '['
+;;   - lt[')'] = '('
+;;   - lt['}'] = '{'
+;;   - lt['['] = 1
+;;   - lt['('] = 1
+;;   - lt['{'] = 1
+;;   - lt[other] = 0
 lookup:
-    times left_paren db 0
-
-    db 1                                        ; '(' => 1
-    times right_paren - left_paren - 1 db 0
-    db left_paren                               ; ')' => '('
-
-    times left_sq - right_paren - 1 db 0
-    db 1                                        ; '[' = > 1
-    times right_sq - left_sq - 1 db 0
-    db left_sq                                  ; ')' => '('
-
-    times left_brace - right_sq - 1 db 0
-    db 1                                        ; '{' = > 1
-    times right_brace - left_brace - 1 db 0
-    db left_brace                               ; '}' => '{'
-
-    times 256 - right_brace - 1 db 0
-
-
+    resb 256
 
 %ifidn __OUTPUT_FORMAT__,elf64
 section .note.GNU-stack noalloc noexec nowrite progbits
