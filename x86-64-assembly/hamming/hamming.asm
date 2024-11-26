@@ -10,13 +10,12 @@ distance:
     cld
 
 .loop_start:
-    mov ah, [rdi]
     lodsb ; al <- [rsi]; rsi++
     scasb ; cmp al, [rdi]; rdi++
     setne cl
     add edx, ecx
 
-    imul ah
+    imul byte [rdi - 1]
     test ax, ax
     jnz .loop_start ; both are not 0
 
