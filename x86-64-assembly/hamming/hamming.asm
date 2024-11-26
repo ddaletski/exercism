@@ -18,9 +18,7 @@ distance:
 
     imul ah
     test ax, ax
-    jz .loop_end ; producs is 0 => at least one char is 0
-
-    jmp .loop_start
+    jnz .loop_start ; both are not 0
 
 .loop_end:
     ; at least one char was 0

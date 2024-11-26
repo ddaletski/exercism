@@ -1,0 +1,18 @@
+{
+  "authors": [
+    "bergjohan"
+  ],
+  "files": {
+    "solution": [
+      "matching_brackets.asm"
+    ],
+    "test": [
+      "matching_brackets_test.c"
+    ],
+    "example": [
+      ".meta/example.asm"
+    ]
+  },
+  "blurb": "Make sure the brackets and braces all match.",
+  "source": "Ginna Baker"
+}
