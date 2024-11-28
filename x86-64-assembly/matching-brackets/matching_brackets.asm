@@ -2,9 +2,13 @@ section .text
 global is_paired
 
 is_paired:
+    lea rsi, [rel lookup]
+    ;; lookup table is alredy initialized
+    ;; if the last non-zero entry is already set
+    cmp byte [rsi + '}'], '{'
+    je .initialized
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; lookup initialization
-    lea rsi, [rel lookup]
     mov byte [rsi + '('], 1
     mov byte [rsi + '['], 1
     mov byte [rsi + '{'], 1
@@ -12,13 +16,13 @@ is_paired:
     mov byte [rsi + ']'], '['
     mov byte [rsi + '}'], '{'
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+.initialized:
 
     xor rdx, rdx
     xor rax, rax
     inc al ; brackets match until proven otherwise
 
-    push rbp
-    mov rbp, rsp ; bracket stack bottom
+    mov rcx, rsp ; bracket stack bottom
 
 .loop:
     mov dl, [rdi]
@@ -27,24 +31,24 @@ is_paired:
     test dl, dl
     jz .unwind ; string end reached
 
-    mov cl, byte[rsi + rdx] ; table entry for a given char
+    mov ah, byte[rsi + rdx] ; table entry for a given char
 
-    test cl, cl
+    test ah, ah
     jz .loop ; some irrelevant symbol found, skip
 
-    cmp cl, 1 ; check if it was an opening bracket
+    cmp ah, 1 ; check if it was an opening bracket
     jne .closing
 
     push dx ; dl cointains opening bracket, push it to the stack
     jmp .loop
 
 .closing:
-    cmp rsp, rbp
+    cmp rsp, rcx
     je .mismatch ; stack is empty, can't pop
 
     pop dx ; stack top is in `dl`
-    ;; expected left bracket is in `cl`
-    cmp dl, cl
+    ;; expected left bracket is in `ah`
+    cmp dl, ah
     je .loop
 
     ;; won't jump if wrong opening bracked is on the stack
@@ -53,13 +57,13 @@ is_paired:
     xor al, al
 
 .unwind:
-    cmp rsp, rbp
+    cmp rsp, rcx
     je .end
-    mov rsp, rbp ; pop all values from stack
+    mov rsp, rcx ; pop all values from stack
     xor al, al ; brackets are mismatched if stack wasn't empty at the end
 
 .end:
-    pop rbp
+    xor ah, ah ; clean ah to ensure we follow the ABI spec and set `rax=1` for `true` value
     ret
 
 section .bss
