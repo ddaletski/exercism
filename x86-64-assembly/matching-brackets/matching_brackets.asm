@@ -18,8 +18,8 @@ is_paired:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .initialized:
 
-    xor rdx, rdx
-    xor rax, rax
+    xor edx, edx
+    xor eax, eax
     inc al ; brackets match until proven otherwise
 
     mov rcx, rsp ; bracket stack bottom
@@ -63,7 +63,7 @@ is_paired:
     xor al, al ; brackets are mismatched if stack wasn't empty at the end
 
 .end:
-    xor ah, ah ; clean ah to ensure we follow the ABI spec and set `rax=1` for `true` value
+    xor ah, ah
     ret
 
 section .bss
